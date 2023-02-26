@@ -2,6 +2,7 @@ version: 2.1
 
 orbs:
   slack: circleci/slack@4.12.1
+  aws-cli: circleci/aws-cli@3.1.4
 
 commands:
   notify_on_failure:
@@ -11,11 +12,29 @@ commands:
         channel: cicd
         template: basic_fail_1
 
+  install_awscli:
+  description: Install AWS CLI v2
+  steps:
+    - run:
+        name: Install AWS CLI v2
+        command: |
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip awscliv2.zip
+          sudo ./aws/install
+  
+  install_ansible:
+  description: Install Ansible
+  steps:
+    - run:
+        name: Install Ansible
+        command: |
+          python3 -m pip install --user ansible
+
   destroy-environment:
     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
     parameters:
       # Add parameter here   
-      workflow_id:
+      Workflow_ID:
         type: string
         default: "${CIRCLE_WORKFLOW_ID:0:7}"
     steps:
@@ -24,9 +43,14 @@ commands:
           when: on_fail
           command: |
             # Your code here
-            echo "Destroying environment: << parameters.workflow_id >> "
-            aws cloudformation delete-stack --stack-name udapeople-frontend-<< parameters.workflow_id >>
-            aws cloudformation delete-stack --stack-name udapeople-backend-<< parameters.workflow_id >>
+            # Empty frontend bucket
+            aws s3 rm s3://udapeople-<<parameters.Workflow_ID>> --recursive
+
+            # Delete frontend stack
+            aws cloudformation delete-stack --stack-name udapeople-frontend-<< parameters.Workflow_ID >>
+
+            # Delete backend stack
+            aws cloudformation delete-stack --stack-name udapeople-backend-<< parameters.Workflow_ID >>
 
 
 jobs:
@@ -170,10 +194,11 @@ jobs:
   deploy-infrastructure:
     docker:
       # Docker image here that supports AWS CLI
-      - image: amazon/aws-cli
+      - image: cimg/python:3.10
     steps:
       # Checkout code from git
       - checkout
+      - install_awscli
       # Install tar and gzip
       - run:
           name: Install tar utility
@@ -232,4 +257,4 @@ workflows:
           requires: [test-frontend, test-backend, scan-frontend, scan-backend]
           filters:
             branches:
-              only: [test-feature-branch]
+              only: [master]
