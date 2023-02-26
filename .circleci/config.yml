@@ -24,11 +24,11 @@ commands:
   
   install_ansible:
   description: Install Ansible
-  steps:
-    - run:
-        name: Install Ansible
-        command: |
-          python3 -m pip install --user ansible
+    steps:
+      - run:
+          name: Install Ansible
+          command: |
+            python3 -m pip install --user ansible
 
   destroy-environment:
     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
