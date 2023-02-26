@@ -76,8 +76,7 @@ jobs:
             cd frontend
             npm install
             npm run test
-      - notify_on_success:
-          requires: [build-frontend]
+      - notify_on_failure
                         
   test-backend:
     docker:
@@ -96,8 +95,7 @@ jobs:
             cd frontend
             npm install
             npm run test
-      - notify_on_success:
-          requires: [build-backend]
+      - notify_on_failure
 
   scan-frontend:
     docker:
@@ -123,8 +121,7 @@ jobs:
             npm audit fix --force --audit-level=critical
             npm audit --audit-level=critical
 
-      - notify_on_success:
-          requires: [build-frontend]
+      - notify_on_failure
 
   scan-backend:
     docker:
@@ -151,8 +148,7 @@ jobs:
             npm audit fix --force --audit-level=critical
             npm audit --audit-level=critical
 
-      - notify_on_success:
-          requires: [build-backend]
+      - notify_on_failure
 
 
 workflows:
