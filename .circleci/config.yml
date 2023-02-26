@@ -424,11 +424,7 @@ jobs:
       - checkout
       - install_awscli
       - install_nodejs
-      - run:
-          name: Install dependencies
-          command: |
-            # your code here
-            apk add --update --no-cache curl aws-cli nodejs npm
+
       - run:
           name: Get backend url
           command: |
