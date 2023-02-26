@@ -7,20 +7,21 @@ commands:
   notify_on_failure:
     steps:
     - slack/notify:
-        branch_pattern: master
         event: fail
         channel: cicd
         template: basic_fail_1
-  
-  notify_on_success:
-    steps:
-    - slack/notify:
-        branch_pattern: master
-        event: pass
-        channel: cicd
-        template: success_tagged_deployment_1
+
 
 jobs:
+  notify_on_success:
+    docker:
+    - image: cimg/base:stable
+    steps:
+    - slack/notify:
+        event: pass
+        channel: cicd
+        template: success_tagged_deploy_1
+
   build-frontend:
     docker:
       - image: circleci/node:13.8.0
@@ -38,7 +39,6 @@ jobs:
           paths: [frontend/node_modules]
           key: frontend-build
       - notify_on_failure
-      - notify_on_success
 
   build-backend:
     docker:
@@ -57,7 +57,6 @@ jobs:
           paths: [backend/node_modules]
           key: backend-build
       - notify_on_failure
-      - notify_on_success
 
   test-frontend:
     docker:
@@ -77,6 +76,8 @@ jobs:
             npm install
             npm run test
       - notify_on_failure
+      - notify_on_success:
+          requires: [build-frontend]
                         
   test-backend:
     docker:
@@ -96,6 +97,8 @@ jobs:
             npm install
             npm run test
       - notify_on_failure
+      - notify_on_success:
+          requires: [build-backend]
 
   scan-frontend:
     docker:
