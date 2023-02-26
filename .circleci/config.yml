@@ -226,6 +226,31 @@ jobs:
        # Here's where you will add some code to rollback on failure
       - destroy-environment
       - notify_on_failure   
+  
+  configure-infrastructure:
+    docker:
+      # Docker image here that supports Ansible
+      - image: cimg/python:3.10
+    steps:
+      # Checkout code from git
+      - checkout
+      - install_awscli
+      - install_ansible
+      # Add ssh keys with fingerprint
+      - add_ssh_keys:
+          fingerprints: ["f2:da:ca:1a:52:62:5b:48:a2:c3:07:66:b5:7a:94:84"]
+      # attach workspace
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: Configure server
+          command: |
+            # Your code here
+            cd .circleci/ansible
+            cat inventory.txt
+            ansible-playbook -i inventory.txt configure-server.yml
+      # Here's where you will add some code to rollback on failure      
+      - destroy-environment
 
 
 workflows:
@@ -248,3 +273,5 @@ workflows:
           filters:
             branches:
               only: [master]
+      - configure-infrastructure:
+          requires: [deploy-infrastructure]
