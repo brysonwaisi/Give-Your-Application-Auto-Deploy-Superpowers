@@ -2,7 +2,6 @@ version: 2.1
 
 orbs:
   slack: circleci/slack@4.12.1
-  aws-cli: circleci/aws-cli@3.1.4
 
 commands:
   notify_on_failure:
@@ -45,6 +44,7 @@ commands:
             # Your code here
             echo "Destroying environment: << parameters.Workflow_ID >> "
             aws cloudformation delete-stack --stack-name udapeople-frontend-<< parameters.Workflow_ID >>
+            aws s3 rm s3://udapeople-<<parameters.Workflow_ID>> --recursive
             aws cloudformation delete-stack --stack-name udapeople-backend-<< parameters.Workflow_ID >>
 
   install_nodejs:
@@ -336,13 +336,15 @@ jobs:
       - install_nodejs
 
       - restore_cache:
-          keys: [backend-deps]
+          keys: [frontend-deps]
       - run:
           name: Install dependencies
           command: |
             # your code here
             cd frontend
             npm install
+            tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
+            aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
       - run:
           name: Get backend url
           command: |
@@ -397,7 +399,6 @@ jobs:
             cd backend
             npm run build
             tar -czf artifact.tar.gz dist/* package*
-
             cd ..
             cp backend/artifact.tar.gz .circleci/ansible/roles/deploy/files
 
@@ -407,7 +408,6 @@ jobs:
             export TYPEORM_MIGRATIONS_DIR=./migrations
             export TYPEORM_ENTITIES=./modules/domain/**/*.entity{.ts,.js}
             export TYPEORM_MIGRATIONS=./migrations/*.ts
-
             cd .circleci/ansible
             cat inventory.txt
             ansible-playbook -i inventory.txt deploy-backend.yml
