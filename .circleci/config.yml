@@ -489,9 +489,9 @@ jobs:
           command: |
             # your code here
             aws cloudformation deploy \
-              --template-file cloudfront.yml \
-              --stack-name udapeople-cloudfront \
-              --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}"
+              --template-file .circleci/files/cloudfront.yml \
+              --stack-name InitialStack \
+              --parameter-overrides WorkflowID="udapeople-${CIRCLE_WORKFLOW_ID:0:7}"
         
       # Here's where you will add some code to rollback on failure  
       - destroy-environment
