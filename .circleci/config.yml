@@ -31,8 +31,7 @@ commands:
 
   destroy-environment:
     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
-    parameters:
-      # Add parameter here   
+    parameters:  
       Workflow_ID:
         type: string
         default: "${CIRCLE_WORKFLOW_ID:0:7}"
@@ -63,14 +62,12 @@ commands:
   revert-migrations:
     description: Revert the last migration if successfully run in the current workflow.
     parameters:
-      # Add parameter here 
       Workflow_ID:
         type: string
         default: ${CIRCLE_WORKFLOW_ID:0:7}    
     steps:
       - run:
           name: Revert migrations
-          # Add when this will run
           when: on_fail
           command: |
             # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
@@ -133,15 +130,11 @@ jobs:
 
   test-frontend:
     docker:
-      # Docker image here
       - image: circleci/node:13.8.0
     steps:
-      # Checkout code from git
       - checkout
-      # Restore from cache
       - restore_cache:
           keys: [frontend-build]
-      # Your job code here
       - run:
           name: Install dependencies
           command: |
@@ -153,15 +146,11 @@ jobs:
                         
   test-backend:
     docker:
-      # Docker image here
       - image: circleci/node:13.8.0
     steps:
-      # Checkout code from git
       - checkout
-      # Restore from cache
       - restore_cache:
           keys: [backend-build]
-      # Your job code here
       - run:
           name: Install dependencies
           command: |
@@ -172,16 +161,12 @@ jobs:
 
   scan-frontend:
     docker:
-      # Docker image here
       - image: circleci/node:13.8.0
     steps:
-      # Checkout code from git
       - checkout
-      # Restore from cache
       - restore_cache:
           keys:
             - frontend-deps-{{ checksum "frontend/package-lock.json" }}
-      # Your job code here
       - run:
           name: Install dependencies
           command: |
@@ -198,16 +183,12 @@ jobs:
 
   scan-backend:
     docker:
-      # Docker image here
       - image: circleci/node:13.8.0
     steps:
-      # Checkout code from git
       - checkout
-      # Restore from cache
       - restore_cache:
           keys:
             - backend-deps-{{ checksum "backend/package-lock.json" }}
-      # Your job code here
       - run:
           name: Install dependencies
           command: |
@@ -225,10 +206,8 @@ jobs:
 
   deploy-infrastructure:
     docker:
-      # Docker image here that supports AWS CLI
       - image: cimg/python:3.10
     steps:
-      # Checkout code from git
       - checkout
       - install_awscli
       - run:
@@ -260,23 +239,18 @@ jobs:
           root: ~/
           paths:
             - project/.circleci/ansible/inventory.txt
-       # Here's where you will add some code to rollback on failure
       - destroy-environment
       - notify_on_failure   
   
   configure-infrastructure:
     docker:
-      # Docker image here that supports Ansible
       - image: cimg/python:3.10
     steps:
-      # Checkout code from git
       - checkout
       - install_awscli
       - install_ansible
-      # Add ssh keys with fingerprint
       - add_ssh_keys:
           fingerprints: ["f2:da:ca:1a:52:62:5b:48:a2:c3:07:66:b5:7a:94:84"]
-      # attach workspace
       - attach_workspace:
           at: ~/
       - run:
@@ -285,18 +259,14 @@ jobs:
             # Your code here
             cd .circleci/ansible
             cat inventory.txt
-            ansible-playbook -i inventory.txt configure-server.yml
-      # Here's where you will add some code to rollback on failure      
+            ansible-playbook -i inventory.txt configure-server.yml      
       - destroy-environment
 
   run-migrations:
     docker:
-      # Docker image here that supports NodeJS
       - image: cimg/python:3.10
     steps:
-      # Checkout code from git
       - checkout
-
       - install_awscli
       - install_nodejs
 
@@ -319,17 +289,14 @@ jobs:
               curl https://kvdb.io/LxHKgqUjcv5v6Sv9nXkXoD/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
             else
               echo "No migrations are pending" 
-            fi
-     # Here's where you will add some code to rollback on failure      
+            fi     
       - destroy-environment
       - revert-migrations
 
   deploy-frontend:
     docker:
-      # Docker image here that supports AWS CLI
       - image: cimg/python:3.10
     steps:
-      # Checkout code from git
       - checkout
       - install_awscli
       - install_nodejs
@@ -360,16 +327,13 @@ jobs:
             cd frontend
             npm run build
             aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
-      # Here's where you will add some code to rollback on failure 
       - destroy-environment
       - revert-migrations    
 
   deploy-backend:
     docker:
-      # Docker image here that supports Ansible
       - image: cimg/python:3.10
     steps:
-      # Checkout code from git
       - checkout
       - install_ansible
       - install_awscli
@@ -377,10 +341,8 @@ jobs:
 
       - restore_cache:
           keys: [backend-deps]
-      # Add ssh keys with fingerprint
       - add_ssh_keys:
           fingerprints: ["f2:da:ca:1a:52:62:5b:48:a2:c3:07:66:b5:7a:94:84"]
-      # attach workspace
       - attach_workspace:
           at: ~/
       - run:
@@ -408,20 +370,16 @@ jobs:
             cd .circleci/ansible
             cat inventory.txt
             ansible-playbook -i inventory.txt deploy-backend.yml
-      # Here's where you will add some code to rollback on failure  
       - destroy-environment
       - revert-migrations
 
   smoke-test:
     docker:
-      # Lightweight Docker image 
       - image: cimg/base:stable
     steps:
-      # Checkout code from git
       - checkout
       - install_awscli
       - install_nodejs
-
       - run:
           name: Get backend url
           command: |
@@ -458,17 +416,14 @@ jobs:
                 exit 0
             else
                 exit 1
-            fi
-      # Here's where you will add some code to rollback on failure  
+            fi 
       - destroy-environment
       - revert-migrations
 
   cloudfront-update:
     docker:
-      # Docker image here that supports AWS CLI
       - image: cimg/base:stable
     steps:
-      # Checkout code from git
       - checkout
       - install_awscli
       - install_nodejs
@@ -489,17 +444,13 @@ jobs:
               --template-file .circleci/files/cloudfront.yml \
               --stack-name InitialStack \
               --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}"
-        
-      # Here's where you will add some code to rollback on failure  
       - destroy-environment
       - revert-migrations
     
   cleanup:
     docker:
-      # Docker image here
       - image: cimg/base:stable
     steps:
-      # Checkout code from git
       - checkout
       - install_awscli
       - install_nodejs
