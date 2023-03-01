@@ -71,7 +71,7 @@ commands:
           when: on_fail
           command: |
             # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
-            SUCCESS=$(curl --insecure  https://kvdb.io/LxHKgqUjcv5v6Sv9nXkXoD/migration_<< parameters.Workflow_ID >>)
+            SUCCESS=$(curl -k  https://kvdb.io/LxHKgqUjcv5v6Sv9nXkXoD/migration_<< parameters.Workflow_ID >>)
 
             # Logic for reverting database state
 
@@ -401,9 +401,9 @@ jobs:
             FRONTEND_WEBSITE=http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website.${AWS_DEFAULT_REGION}.amazonaws.com
             if curl -s $FRONTEND_WEBSITE | grep "Welcome"
             then
-                exit 0
-            else
                 exit 1
+            else
+                exit 2
             fi 
       - destroy-environment
       - revert-migrations
