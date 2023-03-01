@@ -39,8 +39,7 @@ commands:
       - run:
           name: Destroy environments
           when: on_fail
-          command: |
-            # Your code here
+          command: | 
             echo "Destroying environment: << parameters.Workflow_ID >> "
             aws cloudformation delete-stack --stack-name udapeople-frontend-<< parameters.Workflow_ID >>
             aws cloudformation delete-stack --stack-name udapeople-backend-<< parameters.Workflow_ID >>
@@ -254,8 +253,7 @@ jobs:
           at: ~/
       - run:
           name: Configure server
-          command: |
-            # Your code here
+          command: | 
             cd .circleci/ansible
             cat inventory.txt
             ansible-playbook -i inventory.txt configure-server.yml      
@@ -273,8 +271,7 @@ jobs:
           keys: [backend-deps]
       - run:
           name: Run migrations
-          command: |
-            # Your code here
+          command: | 
             cd backend
             npm install
             npm run migrations > migrations_dump.txt
@@ -282,7 +279,6 @@ jobs:
       - run:
           name: Send migration results to kvdb.io
           command: |
-            # Your code here
             if grep -q "has been executed successfully." ~/project/backend/migrations_dump.txt
             then
               curl https://kvdb.io/LxHKgqUjcv5v6Sv9nXkXoD/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
@@ -304,14 +300,12 @@ jobs:
           keys: [frontend-deps]
       - run:
           name: Install dependencies
-          command: |
-            # your code here
+          command: | 
             cd frontend
             npm install
       - run:
           name: Get backend url
-          command: |
-            # your code here
+          command: | 
             BACKEND_PUBLIC_IP=$(aws ec2 describe-instances \
               --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
               --query 'Reservations[*].Instances[*].PublicIpAddress' \
@@ -321,8 +315,7 @@ jobs:
             cat frontend/.env
       - run:
           name: Deploy frontend objects
-          command: |
-            # your code here
+          command: | 
             cd frontend
             npm run build
             aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
@@ -347,13 +340,11 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            # your code here
             cd backend
             npm install
       - run:
           name: Package backend
           command: |
-            # your code here
             cd backend
             npm run build
             tar -czf artifact.tar.gz dist/* package*
@@ -382,7 +373,6 @@ jobs:
       - run:
           name: Get backend url
           command: |
-            # your code here
             export BACKEND_IP=$(aws ec2 describe-instances \
             --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
             --query "Reservations[*].Instances[*].PublicDnsName" \
@@ -392,7 +382,6 @@ jobs:
       - run:
           name: Backend smoke test.
           command: |
-            # your code here
             # BACKEND_PUBLIC_IP=$(aws ec2 describe-instances \
             #   --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
             #   --query 'Reservations[*].Instances[*].PublicIpAddress' \
@@ -407,8 +396,7 @@ jobs:
             # fi
       - run:
           name: Frontend smoke test.
-          command: |
-            # your code here
+          command: | 
             FRONTEND_WEBSITE=http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website.${AWS_DEFAULT_REGION}.amazonaws.com
             if curl -s $FRONTEND_WEBSITE | grep "Welcome"
             then
@@ -428,8 +416,7 @@ jobs:
       - install_nodejs
       - run:
           name: Save Old Workflow ID to kvbd.io
-          command: |
-            # your code here
+          command: | 
             export OLD_WORKFLOW_ID=$(aws cloudformation \
               list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
               --no-paginate --output text)
@@ -437,8 +424,7 @@ jobs:
             curl https://kvdb.io/LxHKgqUjcv5v6Sv9nXkXoD/old_workflow_id -d "${OLD_WORKFLOW_ID}"
       - run:
           name: Update cloudfront distribution
-          command: |
-            # your code here
+          command: | 
             aws cloudformation deploy \
               --template-file .circleci/files/cloudfront.yml \
               --stack-name InitialStack \
@@ -455,8 +441,7 @@ jobs:
       - install_nodejs
       - run:
           name: Get old stack workflow id
-          command: |
-            # your code here
+          command: | 
             export STACKS=($(aws cloudformation list-stacks \
                 --query "StackSummaries[*].StackName" \
                 --stack-status-filter CREATE_COMPLETE --no-paginate --output text))
